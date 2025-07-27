@@ -1,0 +1,11 @@
+# n8n specific files and directories
+.n8n/
+credentials.json
+config.json
+database.sqlite
+*.env
+.env.production
+.env.development
+.env.test
+nodes/node_modules/
+packages/
