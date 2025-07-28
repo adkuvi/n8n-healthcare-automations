@@ -1,0 +1,17 @@
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "dateOfBirth": "1985-03-15",
+  "gender": "Female",
+  "address": {
+    "street": "123 Health Lane",
+    "city": "MediTown",
+    "state": "CA",
+    "zipCode": "90210"
+  },
+  "phoneNumber": "+15555551234",
+  "email": "jane.doe@example.com",
+  "reasonForVisit": "Annual Checkup",
+  "insuranceProvider": "HealthSure",
+  "policyNumber": "HS-987654321"
+}
