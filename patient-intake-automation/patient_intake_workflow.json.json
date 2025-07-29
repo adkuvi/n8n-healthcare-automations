@@ -1,0 +1,134 @@
+{
+  "name": "patient_intake_workflow.json",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "a6fb1ed7-15f0-47c8-990d-a01fe8737d07",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "54a0d8e7-9ee1-41e7-b3ba-2764d68c4724",
+      "name": "Webhook",
+      "webhookId": "a6fb1ed7-15f0-47c8-990d-a01fe8737d07"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fbea84d3-9127-4dba-a3c7-9b5ccfacbc43",
+              "name": "patientId",
+              "value": "NEW_PATIENT_001",
+              "type": "string"
+            },
+            {
+              "id": "7c667005-c8ba-4238-a3b4-023f2794d2fe",
+              "name": "fullName",
+              "value": "={{ [ $json.firstName, $json.lastName ] }}",
+              "type": "array"
+            },
+            {
+              "id": "a6abe368-7c5a-4253-ba09-add8160594fd",
+              "name": "formattedAddress",
+              "value": "={{ [ $json.address?.street, $json.address?.city, $json.address?.state + ' ' + $json.address?.zipCode ] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -48
+      ],
+      "id": "54a7a789-03a7-4f6e-b30e-42046fac4a56",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const processedPatients = [];\nfor (const item of $input.all()) {\n  // Simple validation: check if required fields exist\n  if (!item.json.fullName || !item.json.dateOfBirth || !item.json.phoneNumber) {\n    console.warn(`Skipping patient due to missing required data: ${JSON.stringify(item.json)}`);\n    continue; // Skip this item if critical data is missing\n  }\n\n  // You can perform more complex transformations here\n  // For example, converting date formats or standardizing gender\n  const patientData = {\n    id: item.json.patientId || `GEN_${Date.now()}`, // Use generated ID if patientId isn't set\n    name: item.json.fullName,\n    dob: item.json.dateOfBirth,\n    gender: item.json.gender,\n    contact: {\n      phone: item.json.phoneNumber,\n      email: item.json.email\n    },\n    address: item.json.formattedAddress,\n    reason: item.json.reasonForVisit,\n    insurance: {\n      provider: item.json.insuranceProvider,\n      policy: item.json.policyNumber\n    }\n  };\n  processedPatients.push({ json: patientData });\n}\n\n// Return each processed patient as a separate item\nreturn processedPatients;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -48
+      ],
+      "id": "cf290e42-34a9-447f-be75-dab6855496d6",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        336,
+        -48
+      ],
+      "id": "a799baa5-f332-47f8-aeea-19a21921469b",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "43170e33-65af-4ed1-b2cb-4db2525ec45c",
+  "meta": {
+    "instanceId": "0cfa00f1a2f9887200f66e0721eace57abdb8d604da82bdc32a06e34b12ae2f8"
+  },
+  "id": "2FYI5NLkYa6DS0YE",
+  "tags": []
+}
