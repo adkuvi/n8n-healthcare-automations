@@ -1,0 +1,272 @@
+{
+  "name": "medication_refill_workflow.json",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "755c8bae-1c89-4faf-b6e6-e960f3500570",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -512
+      ],
+      "id": "a502112d-04e4-4b07-a768-0b4302a357d8",
+      "name": "Webhook",
+      "webhookId": "755c8bae-1c89-4faf-b6e6-e960f3500570"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8337a3d-a1c7-43d2-a00e-6c26ca5a49b6",
+              "name": "patientId",
+              "value": "NEW_PATIENT_001",
+              "type": "string"
+            },
+            {
+              "id": "739329ed-6158-4bef-b711-d73bcd9dc4b2",
+              "name": "fullName",
+              "value": "={{ $json.firstName }} {{ $json.lastName }}",
+              "type": "string"
+            },
+            {
+              "id": "0650a60c-e269-446c-b094-0f6cbdf6204f",
+              "name": "formattedAddress",
+              "value": "={{ $json.address.street }}, {{ $json.address.city }}, {{ $json.address.state }} {{ $json.address.zipCode }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        -512
+      ],
+      "id": "fcee8920-edcc-43a2-99ab-d474f7e5e126",
+      "name": "Edit Fields",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "simple",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2dbdd338-7ce3-4eed-9e9c-a78e9512fd1f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Simple Refill Output"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "56d8208c-decb-4892-9f41-2026835d64a7",
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "complex",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Complex Refill Output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        368,
+        -512
+      ],
+      "id": "e825fa1a-90db-48c6-b416-b84b88f0a7bd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        -576
+      ],
+      "id": "bb56e0fb-4f02-4c0c-9977-4bc02b975e7b",
+      "name": "Simulate Simple Refill Processing"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "patientId",
+              "value": "PAT-002"
+            },
+            {
+              "name": "patientName",
+              "value": "Sarah Jones"
+            },
+            {
+              "name": "medication",
+              "value": "Controlled Substance X"
+            },
+            {
+              "name": "dosage",
+              "value": "5mg"
+            },
+            {
+              "name": "quantity",
+              "value": "60 pills"
+            },
+            {
+              "name": "lastFillDate",
+              "value": "2025-01-15"
+            },
+            {
+              "name": "requestsRefillFor",
+              "value": "Controlled Substance X"
+            },
+            {
+              "name": "notes",
+              "value": "Patient requesting early refill due to increased pain. Last visit was 6 months ago. Requires physician review."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        -368
+      ],
+      "id": "6a22b943-98af-4e7f-aafe-29cd1e3cced5",
+      "name": "Simulate Physician Review Queue"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst processedRequests = items.map((item) => {\n  let requestType = \"simple\";\n  let notesForReview = [];\n  if (\n    item.json.body.medication &&\n    item.json.body.medication.toLowerCase().includes(\"controlled substance\")\n  ) {\n    requestType = \"complex\";\n    notesForReview.push(\"Controlled substance\");\n  }\n  return {\n    ...item.json,\n    requestType,\n    notesForReview,\n  };\n});\n\nreturn processedRequests;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -512
+      ],
+      "id": "ce5de940-e285-4e30-aada-f5560d70cf56",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Simulate Simple Refill Processing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Simulate Physician Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1b812bae-cf52-465b-9aeb-c28540473226",
+  "meta": {
+    "instanceId": "0cfa00f1a2f9887200f66e0721eace57abdb8d604da82bdc32a06e34b12ae2f8"
+  },
+  "id": "6uzRl21BNHe7PCU3",
+  "tags": []
+}
