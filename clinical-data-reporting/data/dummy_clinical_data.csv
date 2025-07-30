@@ -1,0 +1,8 @@
+patientId,lastName,firstName,DOB,gender,diagnosis,visitDate,labResult_Hemoglobin,medication,billAmount,insurance
+PAT001,Smith,Alice,1985-03-15,Female,Hypertension,2025-01-10,14.2,Lisinopril,150.00,BlueCross
+PAT002,Jones,Bob,1970-11-20,Male,Diabetes Type 2,2025-01-15,N/A,Metformin,220.50,Aetna
+PAT003,Williams,Charlie,2000-07-22,Male,Asthma,2025-02-01,13.5,Albuterol,100.00,Cigna
+PAT001,Smith,Alice,1985-03-15,Female,Hypertension,2025-03-05,14.0,Lisinopril,150.00,BlueCross
+PAT004,Davis,Diana,1992-04-01,Female,Allergy,2025-03-10,N/A,Loratadine,80.00,Humana
+PAT002,Jones,Bob,1970-11-20,Male,Diabetes Type 2,2025-04-20,N/A,Insulin,300.00,Aetna
+PAT005,Brown,Eve,1965-09-05,Female,Arthritis,2025-05-01,12.8,Ibuprofen,180.00,BlueCross
