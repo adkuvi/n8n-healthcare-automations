@@ -1,0 +1,12 @@
+{
+  "requestId": "ORDER-001",
+  "requestType": "Supply Order",
+  "item": "Surgical Gloves",
+  "quantity": 20,
+  "unit": "boxes",
+  "priority": "High",
+  "requestedBy": "Dr. Emily White",
+  "department": "Surgery",
+  "notes": "Urgent need for upcoming procedures. Please expedite.",
+  "requiredByDate": "2025-08-10"
+}
