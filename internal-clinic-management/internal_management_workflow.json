@@ -1,0 +1,142 @@
+{
+  "name": "internal_management_workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d6aab113-0627-42a0-86fb-7f1b861b2ffd",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "cc1fad53-c8a8-4d35-8c7d-3cde1f0b3347",
+      "name": "Webhook",
+      "webhookId": "d6aab113-0627-42a0-86fb-7f1b861b2ffd"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        -80
+      ],
+      "id": "201c3d5e-a85f-41bf-8058-198e2b2e93c8",
+      "name": "Normalize Order Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const processedOrders = [];\n\nfor (const item of $input.all()) {\n  const orderData = item.json?.body;\n  if (orderData) {\n    let orderStatus = 'Pending';\n    let internalNotes = [];\n\n    if (\n      orderData.priority &&\n      typeof orderData.priority === 'string' &&\n      orderData.priority.toLowerCase() === 'high'\n    ) {\n      orderStatus = 'High Priority';\n      internalNotes.push('Action required: High priority order.');\n    } else {\n      internalNotes.push('Standard priority order.');\n    }\n\n    const outputOrderJson = {\n      ...orderData, // Include original order details\n      orderStatus: orderStatus,\n      internalNotes: internalNotes.join('; '),\n      processedAt: new Date().toISOString(),\n    };\n    processedOrders.push({ json: outputOrderJson });\n  } else {\n    console.error('Code node: Missing order data in input body.');\n    processedOrders.push({ json: { error: 'Missing order data' } });\n  }\n}\n\nreturn processedOrders;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -80
+      ],
+      "id": "8eecf98d-2bd7-4c5a-9ba2-e51b4bb9bbce",
+      "name": "Process Order Logic",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        288,
+        -80
+      ],
+      "id": "5d19b471-54e6-496a-a816-38c3dad5b9a5",
+      "name": "Simulate Inventory Update"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"channel\": \"#clinic-orders\",\n  \"text\": \"New Supply Order: {{ $json.item }} - Quantity: {{ $json.quantity }} {{ $json.unit }} for {{ $json.department }}. Priority: {{ $json.priority }}. Status: {{ $json.orderStatus }}. Notes: {{ $json.internalNotes }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        512,
+        -80
+      ],
+      "id": "aceaff59-5192-41f9-8674-15cc8a2b4b78",
+      "name": "Send Slack Notification (Mock)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Order Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Order Data": {
+      "main": [
+        [
+          {
+            "node": "Process Order Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Order Logic": {
+      "main": [
+        [
+          {
+            "node": "Simulate Inventory Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simulate Inventory Update": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Notification (Mock)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "79b961c8-7b13-4597-9b36-3d3fad9b8311",
+  "meta": {
+    "instanceId": "0cfa00f1a2f9887200f66e0721eace57abdb8d604da82bdc32a06e34b12ae2f8"
+  },
+  "id": "ue3fxAd4sVC5cKda",
+  "tags": []
+}
