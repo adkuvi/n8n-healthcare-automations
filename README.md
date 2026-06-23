@@ -1,2 +1,2 @@
 # n8n-healthcare-automations
-Dummy n8n automation projects for healthcare use cases.
+Proof-of-concept n8n automation workflows for healthcare use cases.
